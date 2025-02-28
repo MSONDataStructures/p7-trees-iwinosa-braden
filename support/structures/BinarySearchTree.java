@@ -1,100 +1,158 @@
 package structures;
 
-/**
- * <p>
- * A {@link BinarySearchTree} is a container that maintains an internal state
- * consistent with a Binary Search Tree.
- * </p>
- *
- * @param <T> the type of data stored in this {@link BinarySearchTree}
- * @author jcollard jddevaug
- */
-public interface BinarySearchTree<T extends Comparable<? super T>> {
-    /**
-     * Adds {@code toAdd} to this {@link BinarySearchTree}. For convenience,
-     * this method returns the modified {@link BinarySearchTree}. This method
-     * runs in O(size) time. However, if this {@link BinarySearchTree} is
-     * balanced, this method runs in O(log(size)) time.
-     * A successful call to this method will always result in size increasing by one.
-     * For simplicity, you can suppose that a duplicate value being added to the
-     * tree should head to the right, that is, the left child will have a strictly
-     * lesser value, and the right child will have a greater-than-or-equal-to value
-     * in any node of the BST (consistent with the <code>isBST</code> method in the
-     * <code>BinaryTreeUtility</code> class).
-     *
-     * @param toAdd the element to add to this {@link BinarySearchTree}
-     * @return For convenience, this method returns the modified
-     * {@link BinarySearchTree}.
-     * @throws NullPointerException if {@code toAdd} is {@code null}
-     */
-    BinarySearchTree<T> add(T toAdd);
+public class BinarySearchTreeImpl<T extends Comparable<? super T>> implements BinarySearchTree<T> {
 
-    /**
-     * Searches this {@link BinarySearchTree} for {@code toFind} and returns
-     * {@code true} if there is at least one instance of {@code toFind} in this
-     * {@link BinarySearchTree} and {@code false} otherwise. This method
-     * runs in O(size) time. However, if this {@link BinarySearchTree} is balanced,
-     * this method runs in O(log(size)) time.
-     *
-     * @param toFind the element to search for
-     * @return {@code true} if there is an instance of {@code toFind} in this
-     * {@link BinarySearchTree} and {@code false otherwise.
-     * @throws NullPointerException if {@code toFind} is {@code null}
-     */
-    boolean contains(T toFind);
+    // Node class representing a node in the Binary Search Tree
+    private static class Node<T> {
+        T value;
+        Node<T> left, right;
 
-    /**
-     * Removes {@code toRemove} from this {@link BinarySearchTree} if at least
-     * one element is considered comparably equivalent (compareTo(toRemove) ==
-     * 0). Returns {@code true} if this {@link BinarySearchTree} was modified
-     * and {@code false} otherwise. This method runs in O(size) time. However,
-     * if this {@link BinarySearchTree} is balanced, this method runs in
-     * O(log(size)) time. If there is more than one copy of {@code toRemove}
-     * in the tree, only one copy of the node should be removed.
-     *
-     * @param toRemove the element to be removed
-     * @return {@code true} if this {@link BinarySearchTree} was modified and
-     * {@code false} otherwise
-     */
-    boolean remove(T toRemove);
+        Node(T value) {
+            this.value = value;
+            this.left = null;
+            this.right = null;
+        }
+    }
 
-    /**
-     * Returns the number of elements in this {@link BinarySearchTree}
-     *
-     * @return the number of elements in this {@link BinarySearchTree}
-     */
-    int size();
+    // The root of the tree
+    private Node<T> root;
 
-    /**
-     * Returns {@code true} if this {@link BinarySearchTree} contains no
-     * elements and {@code false} otherwise.
-     *
-     * @return {@code true} if this {@link BinarySearchTree} contains no
-     * elements and {@code false} otherwise.
-     */
-    boolean isEmpty();
+    // Size of the tree
+    private int size;
 
-    /**
-     * Returns the minimum value in this {@link BinarySearchTree}.
-     *
-     * @return the minimum value in this {@link BinarySearchTree}.
-     * @throws IllegalStateException if this {@link BinarySearchTree} is empty.
-     */
-    T getMinimum();
+    public BinarySearchTreeImpl() {
+        this.root = null;
+        this.size = 0;
+    }
 
-    /**
-     * Returns the maximum value in this {@link BinarySearchTree}.
-     *
-     * @return the maximum value in this {@link BinarySearchTree}.
-     * @throws IllegalStateException if this {@link BinarySearchTree} is empty.
-     */
-    T getMaximum();
+    @Override
+    public BinarySearchTree<T> add(T toAdd) {
+        if (toAdd == null) {
+            throw new NullPointerException("Cannot add null value to the tree");
+        }
+        root = addRecursive(root, toAdd);
+        size++;
+        return this;
+    }
 
-    /**
-     * Returns the root {@link BinaryTreeNode} in this {@link BinarySearchTree}.
-     *
-     * @return the root {@link BinaryTreeNode} in this {@link BinarySearchTree}.
-     * @throws IllegalStateException if this {@link BinarySearchTree} is empty.
-     */
-    BinaryTreeNode<T> getRoot();
+    private Node<T> addRecursive(Node<T> current, T toAdd) {
+        if (current == null) {
+            return new Node<>(toAdd);
+        }
+
+        int comparison = toAdd.compareTo(current.value);
+        if (comparison < 0) {
+            current.left = addRecursive(current.left, toAdd);
+        } else {
+            current.right = addRecursive(current.right, toAdd);
+        }
+
+        return current;
+    }
+
+    @Override
+    public boolean contains(T toFind) {
+        if (toFind == null) {
+            throw new NullPointerException("Cannot search for null value in the tree");
+        }
+        return containsRecursive(root, toFind);
+    }
+
+    private boolean containsRecursive(Node<T> current, T toFind) {
+        if (current == null) {
+            return false;
+        }
+
+        int comparison = toFind.compareTo(current.value);
+        if (comparison == 0) {
+            return true;
+        } else if (comparison < 0) {
+            return containsRecursive(current.left, toFind);
+        } else {
+            return containsRecursive(current.right, toFind);
+        }
+    }
+
+    @Override
+    public boolean remove(T toRemove) {
+        if (toRemove == null) {
+            throw new NullPointerException("Cannot remove null value from the tree");
+        }
+
+        boolean[] wasRemoved = new boolean[1];
+        root = removeRecursive(root, toRemove, wasRemoved);
+        if (wasRemoved[0]) {
+            size--;
+        }
+        return wasRemoved[0];
+    }
+
+    private Node<T> removeRecursive(Node<T> current, T toRemove, boolean[] wasRemoved) {
+        if (current == null) {
+            return null;
+        }
+
+        int comparison = toRemove.compareTo(current.value);
+        if (comparison < 0) {
+            current.left = removeRecursive(current.left, toRemove, wasRemoved);
+        } else if (comparison > 0) {
+            current.right = removeRecursive(current.right, toRemove, wasRemoved);
+        } else {
+            // Node to remove found
+            wasRemoved[0] = true;
+
+            if (current.left == null) {
+                return current.right;
+            } else if (current.right == null) {
+                return current.left;
+            }
+
+            // Node has two children, find the smallest node in the right subtree
+            current.value = getMinimumRecursive(current.right);
+            current.right = removeRecursive(current.right, current.value, wasRemoved);
+        }
+        return current;
+    }
+
+    private T getMinimumRecursive(Node<T> current) {
+        return current.left == null ? current.value : getMinimumRecursive(current.left);
+    }
+
+    @Override
+    public int size() {
+        return size;
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return size == 0;
+    }
+
+    @Override
+    public T getMinimum() {
+        if (isEmpty()) {
+            throw new IllegalStateException("The tree is empty");
+        }
+        return getMinimumRecursive(root);
+    }
+
+    @Override
+    public T getMaximum() {
+        if (isEmpty()) {
+            throw new IllegalStateException("The tree is empty");
+        }
+        return getMaximumRecursive(root);
+    }
+
+    private T getMaximumRecursive(Node<T> current) {
+        return current.right == null ? current.value : getMaximumRecursive(current.right);
+    }
+
+    @Override
+    public BinaryTreeNode<T> getRoot() {
+        if (isEmpty()) {
+            throw new IllegalStateException("The tree is empty");
+        }
+        return new BinaryTreeNode<>(root.value);  // Assuming BinaryTreeNode has a constructor for value
+    }
 }

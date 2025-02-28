@@ -11,14 +11,17 @@ import structures.BinaryTreeUtility;
  */
 public class Configuration {
 	public static <T> BinaryTreeNode<T> createBinaryTreeNode(BinaryTreeNode<T> left, T elem, BinaryTreeNode<T> right){
-		return null;
+		return new BinaryTreeNode<>(elem, left, right);
 	}
-	
+
 	public static BinaryTreeUtility createBinaryTreeUtility(){
-		return null;
+		return new BinaryTreeUtility();
 	}
 
 	public static <T extends Comparable<? super T>> BinarySearchTree<T> createBinarySearchTree(){
-		return null;
+
+		return new BinarySearchTree<>();
 	}
 }
+
+
